@@ -7,11 +7,11 @@ import (
 	"github.com/lib/pq"
 )
 
-type PostStore struct {
+type Post struct {
 	db *sql.DB
 }
 
-func (s *PostStore) Create(ctx context.Context, post *models.Post) error {
+func (s *Post) Create(ctx context.Context, post *models.Post) error {
 
 	query := `INSERT INTO posts (content,title,user_id,tags)
 			 VALUES ($1,$2,$3,$4)
