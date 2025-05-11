@@ -5,29 +5,29 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/LikhithMar14/social/internal/store"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
-	"github.com/LikhithMar14/social/internal/store"
 )
 
-type application struct{
+type application struct {
 	config config
-	store store.Storage
+	store  store.Storage
 }
-type dbConfig struct{
-	addr string
+type dbConfig struct {
+	addr         string
 	maxOpenConns int
 	maxIdleConns int
-	maxIdleTime string
+	maxIdleTime  string
 }
-type config struct{
+type config struct {
 	addr string
-	db 	  dbConfig
-	env   string
+	db   dbConfig
+	env  string
 }
 
-func (app *application) mount() http.Handler{
-	
+func (app *application) mount() http.Handler {
+
 	r := chi.NewRouter()
 	r.Use(middleware.RequestID)
 	r.Use(middleware.RealIP)
@@ -35,22 +35,25 @@ func (app *application) mount() http.Handler{
 	r.Use(middleware.Recoverer)
 	r.Use(middleware.Timeout(60 * time.Second))
 
-
-	r.Route("/v1", func(r chi.Router){
+	r.Route("/v1", func(r chi.Router) {
 		r.Get("/health", app.healthCheckHandler)
-		r.Route("/posts", func(r chi.Router){
+		r.Route("/posts", func(r chi.Router) {
 			r.Post("/", app.createPostHandler)
+		})
+
+		r.Route("/posts/{id}", func(r chi.Router) {
+			r.Get("/", app.getPostHandler)
 		})
 	})
 	return r
 }
-func (app *application) run(r http.Handler) error{
+func (app *application) run(r http.Handler) error {
 	srv := &http.Server{
-		Addr: app.config.addr,
-		Handler: r,
-		WriteTimeout: time.Second*30,
-		ReadTimeout: time.Second*30,
-		IdleTimeout: time.Minute,
+		Addr:         app.config.addr,
+		Handler:      r,
+		WriteTimeout: time.Second * 30,
+		ReadTimeout:  time.Second * 30,
+		IdleTimeout:  time.Minute,
 	}
 	log.Printf("Starting server on %s", srv.Addr)
 	return srv.ListenAndServe()
